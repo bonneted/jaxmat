@@ -19,6 +19,7 @@ from .hyperelasticity import (
     CompressibleMooneyRivlin,
     CompressibleNeoHookean,
     CompressibleOgden,
+    AnisotropicCompressedPotential,
     Hyperelasticity,
     HyperelasticPotential,
     VolumetricPart,
