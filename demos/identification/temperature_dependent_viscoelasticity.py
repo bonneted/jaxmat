@@ -16,7 +16,7 @@
 # ---
 
 # %% [markdown]
-# # Temperature-dependent viscoelasticity: batched inference + calibration
+# # Temperature-dependent viscoelasticity calibration
 #
 # Polymer relaxation is temperature-dependent through time-temperature
 # superposition (TTS): relaxation times shift with temperature by an Arrhenius
