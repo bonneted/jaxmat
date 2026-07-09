@@ -189,7 +189,10 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/green_viscoplasticity.html">Norton viscoplastic model with a Green yield surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/cam_clay.html">Modified Cam-Clay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/multisurface_plasticity.html">Multi-surface plasticity model</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../identification.html">Data-driven identification</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -511,7 +514,6 @@ document.write(`
     <span class="nd">@safe_zero</span>
     <span class="k">def</span><span class="w"> </span><span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sig</span><span class="p">):</span>
         <span class="n">sI</span> <span class="o">=</span> <span class="n">eigenvalues</span><span class="p">(</span><span class="n">sig</span><span class="p">)</span>
-        <span class="n">jax</span><span class="o">.</span><span class="n">debug</span><span class="o">.</span><span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">sI</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
             <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sI</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">sI</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
             <span class="n">jnp</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sI</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">sI</span><span class="p">[</span><span class="mi">2</span><span class="p">]),</span> <span class="n">jnp</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">sI</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">-</span> <span class="n">sI</span><span class="p">[</span><span class="mi">1</span><span class="p">])),</span>

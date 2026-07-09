@@ -192,12 +192,16 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../phenomenological_models/green_viscoplasticity.html">Norton viscoplastic model with a Green yield surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phenomenological_models/cam_clay.html">Modified Cam-Clay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../phenomenological_models/multisurface_plasticity.html">Multi-surface plasticity model</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../identification.html">Data-driven identification</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../identification/hardening_rule.html">Identification of a nonlinear isotropic hardening rule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../identification/nonlinear_kinematic_hardening.html">Identification of a nonlinear hardening model from cyclic data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../identification/temperature_dependent_viscoelasticity.html">Temperature-dependent viscoelasticity: batched inference + calibration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../ml_models.html">Machine-learning based models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -498,29 +502,32 @@ The nonlinear Newton system <span class="math notranslate nohighlight">\((r_p,r_
     <span class="n">current_path</span> <span class="o">/</span> <span class="s2">&quot;../demos/_data/Treloar_rubber.csv&quot;</span><span class="p">,</span> <span class="n">skiprows</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span>
 <span class="p">)</span>
 
-<span class="n">colors</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu&quot;</span><span class="p">:</span> <span class="s2">&quot;crimson&quot;</span><span class="p">}</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;cpu&quot;</span><span class="p">:</span> <span class="s2">&quot;royalblue&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu&quot;</span><span class="p">:</span> <span class="s2">&quot;crimson&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu_v100&quot;</span><span class="p">:</span> <span class="s2">&quot;green&quot;</span><span class="p">}</span>
 <span class="n">style</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;jac&quot;</span><span class="p">:</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;no_jac&quot;</span><span class="p">:</span> <span class="s2">&quot;--&quot;</span><span class="p">}</span>
 
 <span class="k">for</span> <span class="n">jac</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;no_jac&quot;</span><span class="p">,</span> <span class="s2">&quot;jac&quot;</span><span class="p">]:</span>
-    <span class="k">for</span> <span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu&quot;</span><span class="p">]:</span>
-        <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span>
-            <span class="n">current_path</span> <span class="o">/</span> <span class="s2">&quot;../demos/_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;performance_</span><span class="si">{</span><span class="n">jac</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">platform</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span>
-            <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">Nbatch_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">times</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
-            <span class="n">Nbatch_list</span><span class="p">,</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
-            <span class="n">fmt</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;o</span><span class="si">{</span><span class="n">style</span><span class="p">[</span><span class="n">jac</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
-            <span class="n">markerfacecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
-            <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">platform</span><span class="p">],</span>
-            <span class="n">label</span><span class="o">=</span><span class="n">platform</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">jac</span><span class="p">,</span>
-            <span class="n">linewidth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
-            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
-            <span class="n">elinewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
-        <span class="p">)</span>
+    <span class="k">for</span> <span class="n">platform</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cpu&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu&quot;</span><span class="p">,</span> <span class="s2">&quot;gpu_v100&quot;</span><span class="p">]:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span>
+                <span class="n">current_path</span> <span class="o">/</span> <span class="s2">&quot;../demos/_data&quot;</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">&quot;performance_</span><span class="si">{</span><span class="n">jac</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">platform</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">,</span>
+                <span class="n">delimiter</span><span class="o">=</span><span class="s2">&quot;,&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">Nbatch_list</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">times</span> <span class="o">=</span> <span class="n">data</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">errorbar</span><span class="p">(</span>
+                <span class="n">Nbatch_list</span><span class="p">,</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">times</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="n">fmt</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;o</span><span class="si">{</span><span class="n">style</span><span class="p">[</span><span class="n">jac</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">markerfacecolor</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">platform</span><span class="p">],</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">platform</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">jac</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.75</span><span class="p">,</span>
+                <span class="n">elinewidth</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;log&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Number $N$ of material points&quot;</span><span class="p">)</span>
@@ -531,7 +538,7 @@ The nonlinear Newton system <span class="math notranslate nohighlight">\((r_p,r_
 </div>
 </div>
 <div class="cell_output docutils container">
-<img alt="../../_images/f7d3c03cfb6029388afd0babe5b8474342198d66cf06e4e21a3db8c746cbdde9.png" src="../../_images/f7d3c03cfb6029388afd0babe5b8474342198d66cf06e4e21a3db8c746cbdde9.png" />
+<img alt="../../_images/31c8423122924e03f11d8cdcb524b6d35cc6270a2088ef3d10987730aab32788.png" src="../../_images/31c8423122924e03f11d8cdcb524b6d35cc6270a2088ef3d10987730aab32788.png" />
 </div>
 </div>
 <p>We can clearly see a linear scaling in all cases with the batch size <span class="math notranslate nohighlight">\(N\)</span>. For large-scale problems, the GPU achieves a speedup of one to two orders of magnitude (10x–100x) compared to the CPU. At small batch sizes, the GPU curves remain nearly flat, indicating that the total computation time is dominated by kernel launch and data transfer overheads. In this regime, the GPU is underutilized. Once the workload becomes large enough to saturate the device, the computation time grows linearly, reflecting efficient parallel scaling and full hardware utilization.

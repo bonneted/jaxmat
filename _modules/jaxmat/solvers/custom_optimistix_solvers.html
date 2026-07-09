@@ -189,12 +189,16 @@
 </ul>
 <p aria-level="2" class="caption" role="heading"><span class="caption-text">Examples</span></p>
 <ul class="nav bd-sidenav">
-<li class="toctree-l1 has-children"><a class="reference internal" href="../../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../../pheno_models.html">Phenomenological models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/green_viscoplasticity.html">Norton viscoplastic model with a Green yield surface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/cam_clay.html">Modified Cam-Clay</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/phenomenological_models/multisurface_plasticity.html">Multi-surface plasticity model</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../identification.html">Data-driven identification</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../../../demos/identification/hardening_rule.html">Identification of a nonlinear isotropic hardening rule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../../../demos/identification/nonlinear_kinematic_hardening.html">Identification of a nonlinear hardening model from cyclic data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../../demos/identification/temperature_dependent_viscoelasticity.html">Temperature-dependent viscoelasticity: batched inference + calibration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../ml_models.html">Machine-learning based models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -360,82 +364,58 @@ document.write(`
   <h1>Source code for jaxmat.solvers.custom_optimistix_solvers</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span><span class="w"> </span><span class="nn">collections.abc</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">equinox</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">eqx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">lineax</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">lx</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">optimistix</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">optx</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">jaxtyping</span><span class="w"> </span><span class="kn">import</span> <span class="n">PyTree</span><span class="p">,</span> <span class="n">Scalar</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">optimistix</span><span class="w"> </span><span class="kn">import</span> <span class="n">max_norm</span>
+
+<span class="n">_DEFAULT_LS</span> <span class="o">=</span> <span class="n">lx</span><span class="o">.</span><span class="n">AutoLinearSolver</span><span class="p">(</span><span class="n">well_posed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="GaussNewtonTrustRegion">
 <a class="viewcode-back" href="../../../api/jaxmat.solvers.custom_optimistix_solvers.html#jaxmat.solvers.GaussNewtonTrustRegion">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">GaussNewtonTrustRegion</span><span class="p">(</span><span class="n">optx</span><span class="o">.</span><span class="n">GaussNewton</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gauss-Newton Trust Region method.</span>
-
-<span class="sd">    For solving nonlinear least-squares problems with a trust region search.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PyTree</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_norm</span><span class="p">,</span>
-        <span class="n">linear_solver</span><span class="p">:</span> <span class="n">lx</span><span class="o">.</span><span class="n">AbstractLinearSolver</span> <span class="o">=</span> <span class="n">lx</span><span class="o">.</span><span class="n">AutoLinearSolver</span><span class="p">(</span><span class="n">well_posed</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-        <span class="n">verbose</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="n">rtol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="n">atol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">norm</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">descent</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">NewtonDescent</span><span class="p">(</span><span class="n">linear_solver</span><span class="o">=</span><span class="n">linear_solver</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">ClassicalTrustRegion</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span></div>
+<span class="k">def</span><span class="w"> </span><span class="nf">GaussNewtonTrustRegion</span><span class="p">(</span>
+    <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PyTree</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+    <span class="n">linear_solver</span><span class="p">:</span> <span class="n">lx</span><span class="o">.</span><span class="n">AbstractLinearSolver</span> <span class="o">=</span> <span class="n">_DEFAULT_LS</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractLeastSquaresSolver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Gauss-Newton descent globalised with a classical trust region.&quot;&quot;&quot;</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">GaussNewton</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">linear_solver</span><span class="o">=</span><span class="n">linear_solver</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">eqx</span><span class="o">.</span><span class="n">tree_at</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">search</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">optx</span><span class="o">.</span><span class="n">ClassicalTrustRegion</span><span class="p">())</span></div>
 
 
 
 <div class="viewcode-block" id="NewtonTrustRegion">
 <a class="viewcode-back" href="../../../api/jaxmat.solvers.custom_optimistix_solvers.html#jaxmat.solvers.NewtonTrustRegion">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">NewtonTrustRegion</span><span class="p">(</span><span class="n">optx</span><span class="o">.</span><span class="n">LevenbergMarquardt</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Newton Trust Region method.</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">NewtonTrustRegion</span><span class="p">(</span>
+    <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PyTree</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+    <span class="n">linear_solver</span><span class="p">:</span> <span class="n">lx</span><span class="o">.</span><span class="n">AbstractLinearSolver</span> <span class="o">=</span> <span class="n">_DEFAULT_LS</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractLeastSquaresSolver</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Full Newton descent globalised with a classical trust region.</span>
 
-<span class="sd">    For solving nonlinear least-squares problems with a trust region search.</span>
-
-<span class="sd">    Notes</span>
-<span class="sd">    -----</span>
-<span class="sd">    This algorithm is derived from `optx.LevenbergMarquardt` using a full</span>
-<span class="sd">    Newton descent instead of a damped one.</span>
+<span class="sd">    Derived from `optimistix.LevenbergMarquardt` but using a full Newton descent</span>
+<span class="sd">    instead of the damped one.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span>
-        <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PyTree</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_norm</span><span class="p">,</span>
-        <span class="n">linear_solver</span><span class="p">:</span> <span class="n">lx</span><span class="o">.</span><span class="n">AbstractLinearSolver</span> <span class="o">=</span> <span class="n">lx</span><span class="o">.</span><span class="n">AutoLinearSolver</span><span class="p">(</span><span class="n">well_posed</span><span class="o">=</span><span class="kc">None</span><span class="p">),</span>
-        <span class="n">verbose</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(),</span>
-    <span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">rtol</span> <span class="o">=</span> <span class="n">rtol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">atol</span> <span class="o">=</span> <span class="n">atol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">norm</span> <span class="o">=</span> <span class="n">norm</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">descent</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">NewtonDescent</span><span class="p">(</span><span class="n">linear_solver</span><span class="o">=</span><span class="n">linear_solver</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">ClassicalTrustRegion</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span></div>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">LevenbergMarquardt</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">eqx</span><span class="o">.</span><span class="n">tree_at</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">descent</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">optx</span><span class="o">.</span><span class="n">NewtonDescent</span><span class="p">(</span><span class="n">linear_solver</span><span class="o">=</span><span class="n">linear_solver</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">eqx</span><span class="o">.</span><span class="n">tree_at</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">search</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">optx</span><span class="o">.</span><span class="n">ClassicalTrustRegion</span><span class="p">())</span></div>
 
 
 
 <div class="viewcode-block" id="BFGSLinearTrustRegion">
 <a class="viewcode-back" href="../../../api/jaxmat.solvers.custom_optimistix_solvers.html#jaxmat.solvers.BFGSLinearTrustRegion">[docs]</a>
-<span class="k">class</span><span class="w"> </span><span class="nc">BFGSLinearTrustRegion</span><span class="p">(</span><span class="n">optx</span><span class="o">.</span><span class="n">AbstractBFGS</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;BFGS algorithm with trust region.</span>
-
-<span class="sd">    For solving minimisation problems with a linear trust region search.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span>
-    <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">max_norm</span>
-    <span class="n">use_inverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">search</span><span class="p">:</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractSearch</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">LinearTrustRegion</span><span class="p">()</span>
-    <span class="n">descent</span><span class="p">:</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractDescent</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">NewtonDescent</span><span class="p">()</span>
-    <span class="n">verbose</span><span class="p">:</span> <span class="nb">frozenset</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">()</span></div>
+<span class="k">def</span><span class="w"> </span><span class="nf">BFGSLinearTrustRegion</span><span class="p">(</span>
+    <span class="n">rtol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">atol</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="n">norm</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">PyTree</span><span class="p">],</span> <span class="n">Scalar</span><span class="p">]</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">max_norm</span><span class="p">,</span>
+    <span class="n">use_inverse</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">optx</span><span class="o">.</span><span class="n">AbstractMinimiser</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;BFGS quasi-Newton descent globalised with a linear trust region.&quot;&quot;&quot;</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">BFGS</span><span class="p">(</span><span class="n">rtol</span><span class="o">=</span><span class="n">rtol</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="n">atol</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">use_inverse</span><span class="o">=</span><span class="n">use_inverse</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">eqx</span><span class="o">.</span><span class="n">tree_at</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">search</span><span class="p">,</span> <span class="n">base</span><span class="p">,</span> <span class="n">optx</span><span class="o">.</span><span class="n">LinearTrustRegion</span><span class="p">())</span></div>
 
 </pre></div>
 

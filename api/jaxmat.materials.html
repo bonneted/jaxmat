@@ -201,6 +201,7 @@
 <li class="toctree-l1 has-children"><a class="reference internal" href="../identification.html">Data-driven identification</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2"><a class="reference internal" href="../demos/identification/hardening_rule.html">Identification of a nonlinear isotropic hardening rule</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../demos/identification/nonlinear_kinematic_hardening.html">Identification of a nonlinear hardening model from cyclic data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../demos/identification/temperature_dependent_viscoelasticity.html">Temperature-dependent viscoelasticity: batched inference + calibration</a></li>
 </ul>
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../ml_models.html">Machine-learning based models</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
@@ -1554,7 +1555,7 @@ constitutive updates. Computer methods in applied mechanics and engineering,
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="jaxmat.materials.GeneralizedStandardMaterial.minimisation_solver">
-<span class="sig-name descname"><span class="pre">minimisation_solver</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">NewtonTrustRegion(</span>&#160;&#160; <span class="pre">rtol=1e-06,</span>&#160;&#160; <span class="pre">atol=1e-06,</span>&#160;&#160; <span class="pre">norm=&lt;function</span> <span class="pre">max_norm&gt;,</span>&#160;&#160; <span class="pre">descent=NewtonDescent(linear_solver=AutoLinearSolver(well_posed=False)),</span>&#160;&#160; <span class="pre">search=ClassicalTrustRegion(),</span>&#160;&#160; <span class="pre">verbose=frozenset()</span> <span class="pre">)</span></em><a class="headerlink" href="#jaxmat.materials.GeneralizedStandardMaterial.minimisation_solver" title="Link to this definition">#</a></dt>
+<span class="sig-name descname"><span class="pre">minimisation_solver</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><code class="xref py py-class docutils literal notranslate"><span class="pre">Module</span></code></em><a class="headerlink" href="#jaxmat.materials.GeneralizedStandardMaterial.minimisation_solver" title="Link to this definition">#</a></dt>
 <dd><p>Minimisation solver used to minimize the incremental potential.</p>
 </dd></dl>
 
@@ -1749,7 +1750,7 @@ constitutive behaviors (elastic, plastic, viscoplastic, etc.).</p>
 <dt class="sig sig-object py" id="jaxmat.materials.Hyperelasticity">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">Hyperelasticity</span></span><a class="reference internal" href="../_modules/jaxmat/materials/hyperelasticity.html#Hyperelasticity"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#jaxmat.materials.Hyperelasticity" title="Link to this definition">#</a></dt>
 <dd><p>Bases: <a class="reference internal" href="jaxmat.materials.behavior.html#jaxmat.materials.behavior.FiniteStrainBehavior" title="jaxmat.materials.behavior.FiniteStrainBehavior"><code class="xref py py-class docutils literal notranslate"><span class="pre">FiniteStrainBehavior</span></code></a></p>
-<p>Hyperelasticity(potential: jaxmat.materials.hyperelasticity.HyperelasticPotential)</p>
+<p>Hyperelasticity(potential: jaxmat.materials.hyperelasticity.HyperelasticPotential, <a href="#id1"><span class="problematic" id="id2">*</span></a>, solver: optimistix._root_find.AbstractRootFinder = Newton(rtol=1e-08, atol=1e-08, linear_solver=AutoLinearSolver(well_posed=True)), adjoint: optimistix._adjoint.AbstractAdjoint = ImplicitAdjoint(linear_solver=AutoLinearSolver(well_posed=True)))</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="jaxmat.materials.Hyperelasticity.potential">
 <span class="sig-name descname"><span class="pre">potential</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="jaxmat.materials.hyperelasticity.html#jaxmat.materials.hyperelasticity.HyperelasticPotential" title="jaxmat.materials.hyperelasticity.HyperelasticPotential"><code class="xref py py-class docutils literal notranslate"><span class="pre">HyperelasticPotential</span></code></a></em><a class="headerlink" href="#jaxmat.materials.Hyperelasticity.potential" title="Link to this definition">#</a></dt>
@@ -2082,8 +2083,8 @@ where <span class="math notranslate nohighlight">\(\eta\)</span> is the viscosit
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="jaxmat.materials.StandardLinearSolid.maxwell_stiffness">
-<span class="sig-name descname"><span class="pre">maxwell_stiffness</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="jaxmat.materials.elasticity.html#jaxmat.materials.elasticity.AbstractLinearElastic" title="jaxmat.materials.elasticity.AbstractLinearElastic"><code class="xref py py-class docutils literal notranslate"><span class="pre">AbstractLinearElastic</span></code></a></em><a class="headerlink" href="#jaxmat.materials.StandardLinearSolid.maxwell_stiffness" title="Link to this definition">#</a></dt>
-<dd><p>Elastic model representing the spring in the Maxwell branch.</p>
+<span class="sig-name descname"><span class="pre">maxwell_stiffness</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="jaxmat.materials.elasticity.html#jaxmat.materials.elasticity.LinearElasticIsotropic" title="jaxmat.materials.elasticity.LinearElasticIsotropic"><code class="xref py py-class docutils literal notranslate"><span class="pre">LinearElasticIsotropic</span></code></a></em><a class="headerlink" href="#jaxmat.materials.StandardLinearSolid.maxwell_stiffness" title="Link to this definition">#</a></dt>
+<dd><p>Isotropic elastic model representing the spring in the Maxwell branch.</p>
 </dd></dl>
 
 <dl class="py attribute">

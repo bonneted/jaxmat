@@ -376,7 +376,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="InternalState">
-<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.fe_fp_elastoplasticity.InternalState">[docs]</a>
+<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.InternalState">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InternalState</span><span class="p">(</span><span class="n">AbstractState</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Internal state for :class:`FeFpJ2Plasticity`.&quot;&quot;&quot;</span>
 
@@ -388,7 +388,7 @@ document.write(`
 
 
 <div class="viewcode-block" id="FeFpJ2Plasticity">
-<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.fe_fp_elastoplasticity.FeFpJ2Plasticity">[docs]</a>
+<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.FeFpJ2Plasticity">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">FeFpJ2Plasticity</span><span class="p">(</span><span class="n">FiniteStrainBehavior</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Material model based on https://onlinelibrary.wiley.com/doi/epdf/10.1002/nme.6843&quot;&quot;&quot;</span>
 
@@ -401,7 +401,9 @@ document.write(`
     <span class="n">internal_type</span> <span class="o">=</span> <span class="n">InternalState</span>
 
 <div class="viewcode-block" id="FeFpJ2Plasticity.constitutive_update">
-<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.fe_fp_elastoplasticity.FeFpJ2Plasticity.constitutive_update">[docs]</a>
+<a class="viewcode-back" href="../../../api/jaxmat.materials.fe_fp_elastoplasticity.html#jaxmat.materials.FeFpJ2Plasticity.constitutive_update">[docs]</a>
+    <span class="nd">@eqx</span><span class="o">.</span><span class="n">filter_jit</span>
+    <span class="nd">@eqx</span><span class="o">.</span><span class="n">debug</span><span class="o">.</span><span class="n">assert_max_traces</span><span class="p">(</span><span class="n">max_traces</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">constitutive_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">F</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
         <span class="n">F_old</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">F</span>
         <span class="n">isv_old</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">internal</span>
@@ -416,7 +418,7 @@ document.write(`
             <span class="n">be_bar_trial</span> <span class="o">=</span> <span class="p">(</span><span class="n">f_bar</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">be_bar_old</span> <span class="o">@</span> <span class="n">f_bar</span><span class="p">)</span><span class="o">.</span><span class="n">sym</span>
 
             <span class="k">def</span><span class="w"> </span><span class="nf">residual</span><span class="p">(</span><span class="n">dy</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
-                <span class="n">dp</span><span class="p">,</span> <span class="n">be_bar</span> <span class="o">=</span> <span class="n">dy</span>  <span class="c1"># .p, dy.be_bar</span>
+                <span class="n">dp</span><span class="p">,</span> <span class="n">be_bar</span> <span class="o">=</span> <span class="n">dy</span>
                 <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticity</span><span class="o">.</span><span class="n">mu</span> <span class="o">*</span> <span class="n">dev</span><span class="p">(</span><span class="n">be_bar</span><span class="p">)</span>
                 <span class="n">yield_criterion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plastic_surface</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">yield_stress</span><span class="p">(</span><span class="n">p_old</span> <span class="o">+</span> <span class="n">dp</span><span class="p">)</span>
                 <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plastic_surface</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
@@ -428,22 +430,14 @@ document.write(`
                         <span class="o">+</span> <span class="n">Id</span> <span class="o">*</span> <span class="p">(</span><span class="n">det</span><span class="p">(</span><span class="n">be_bar</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
                     <span class="p">)</span><span class="o">.</span><span class="n">sym</span><span class="p">,</span>
                 <span class="p">)</span>
-                <span class="c1"># import jax</span>
-
-                <span class="c1"># jax.debug.print(&quot;Residual = {}&quot;, res)</span>
                 <span class="k">return</span> <span class="n">res</span>
 
-            <span class="c1"># dy0 = isv_old.update(p=0, be_bar=be_bar_trial)</span>
             <span class="n">dy0</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">be_bar_trial</span>
-            <span class="n">sol</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">root_find</span><span class="p">(</span>
-                <span class="n">residual</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span> <span class="n">dy0</span><span class="p">,</span> <span class="n">adjoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adjoint</span><span class="p">,</span> <span class="n">throw</span><span class="o">=</span><span class="kc">False</span>
-            <span class="p">)</span>
+            <span class="n">sol</span> <span class="o">=</span> <span class="n">optx</span><span class="o">.</span><span class="n">root_find</span><span class="p">(</span><span class="n">residual</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">solver</span><span class="p">,</span> <span class="n">dy0</span><span class="p">,</span> <span class="n">adjoint</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">adjoint</span><span class="p">,</span> <span class="n">throw</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">sol</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">be_bar_trial</span>
 
         <span class="n">dy</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">solve_state</span><span class="p">(</span><span class="n">F</span><span class="p">)</span>
         <span class="n">dp</span><span class="p">,</span> <span class="n">be_bar</span> <span class="o">=</span> <span class="n">dy</span>
-        <span class="c1"># be_bar = dy.be_bar.sym  # enforce symmetry</span>
-        <span class="c1"># dp = dy.p</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">isv_old</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">isv_old</span><span class="o">.</span><span class="n">p</span> <span class="o">+</span> <span class="n">dp</span><span class="p">,</span> <span class="n">be_bar</span><span class="o">=</span><span class="n">be_bar</span><span class="p">)</span>
 
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">elasticity</span><span class="o">.</span><span class="n">mu</span> <span class="o">*</span> <span class="n">dev</span><span class="p">(</span><span class="n">be_bar</span><span class="p">)</span>
