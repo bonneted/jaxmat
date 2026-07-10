@@ -26,6 +26,7 @@ def constitutive_update(self, inputs, state, dt):
     resolved = evaluate_parameters(self.behavior, T)
     return resolved.constitutive_update(mech, state, dt)
 ```
+Note that **thermal strains are not supported** at the moment.
 
 ## v0.0.4 - 2026-07-08
 
