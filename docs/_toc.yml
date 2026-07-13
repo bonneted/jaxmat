@@ -31,6 +31,10 @@ parts:
       sections:
         - file: demos/neural_network_models/hyperelastic_PANN.ipynb
         - file: demos/neural_network_models/neural_GSM.ipynb
+    - file: multiphysics.md
+      sections:
+        - file: demos/multiphysics/poroelastic_consolidation.ipynb
+
 
   - caption: General resources 
     chapters:
