@@ -137,9 +137,7 @@ class FiniteStrainState(AbstractState):
     @property
     def PK2(self):
         vmap_axes = 0 if self.F.tensor.ndim == 3 else None
-        return eqx.filter_vmap(PK1_to_PK2, in_axes=vmap_axes, out_axes=vmap_axes)(
-            self.F, self.PK1
-        )
+        return eqx.filter_vmap(PK1_to_PK2, in_axes=vmap_axes, out_axes=vmap_axes)(self.F, self.PK1)
 
     @property
     def sig(self):
@@ -156,9 +154,12 @@ class FiniteStrainState(AbstractState):
 def make_batched(module: eqx.Module, Nbatch: int) -> eqx.Module:
     """Broadcasts all leaf arrays of a single unbatched module into a batched version.
 
-    Args:
-        module: An instance of an equinox Module (e.g., `State`) with array leaves.
-        Nbatch: The number of batch items to broadcast.
+    Parameters
+    -----------
+    module: eqx.module
+        An instance of an equinox Module (e.g., `State`) with array leaves.
+    Nbatch: int
+        The number of batch items to broadcast.
 
     Returns:
         A new instance of the same class, with each array field having shape (Nbatch, ...).

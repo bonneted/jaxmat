@@ -43,9 +43,12 @@ class AbstractPlasticSurface(eqx.Module):
     def normal(self, sig: SymmetricTensor2, *args):
         """Normal to the yield surface. Computed automatically using forward AD on :func:`__call__`.
 
-        Args:
-            sig: Stress tensor.
-            args: Additional thermodynamic forces entering the yield surface definition.
+        Parameters
+        ----------
+        sig:
+            Stress tensor.
+        args:
+            Additional thermodynamic forces entering the yield surface definition.
         """
         return jax.jacfwd(self.__call__, argnums=0)(sig, *args)
 
@@ -131,7 +134,6 @@ class Tresca(AbstractPlasticSurface):
     @safe_zero
     def __call__(self, sig):
         sI = eigenvalues(sig)
-        jax.debug.print("{}", sI)
         return jnp.maximum(
             jnp.abs(sI[0] - sI[1]),
             jnp.maximum(jnp.abs(sI[0] - sI[2]), jnp.abs(sI[2] - sI[1])),

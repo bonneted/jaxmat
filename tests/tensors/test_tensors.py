@@ -56,6 +56,7 @@ def test_tensor_shapes(cls: Tensor2 | SymmetricTensor2):
 
 def _tensor2_init(tensor_type, T_, T_vect_):
     T = tensor_type(tensor=T_)
+    assert jnp.isclose(T[0, 1], T_[0, 1])  # test items
     assert jnp.allclose(T, T_)
     assert jnp.allclose(T.array, T_vect_)
     T2 = tensor_type(array=T_vect_)
@@ -98,6 +99,7 @@ def test_tensor2_init():
     assert T.tensor.shape == (4, 5, 3, 3)
     with pytest.raises(ValueError):
         Tensor2(tensor=jnp.ones((4, 4, 3)))
+    Tensor2(tensor=Tensor2.identity())
 
 
 def test_sym_tensor2_init():
@@ -106,7 +108,7 @@ def test_sym_tensor2_init():
         [0, 3, 5, jnp.sqrt(2) * 1, jnp.sqrt(2) * 2, jnp.sqrt(2) * 4], dtype=jnp.float64
     )
     # this passes
-    St = Tensor2(tensor=S_)
+    Tensor2(tensor=S_)
     # this does not
     with pytest.raises(ValueError):
         Tensor2(array=S_vect_)
@@ -118,16 +120,13 @@ def test_sym_tensor2_init():
     assert not jnp.allclose(S @ S2, S2 @ S)
     assert isinstance((S @ S2).sym, SymmetricTensor2)
     assert jnp.allclose((S @ S2).sym, (S2 @ S).sym)
-    assert jnp.allclose(S._weaken(), St)
 
 
 def test_symmetries():
     gamma = 0.75
     Id = SymmetricTensor2.identity()
     print(type(Id))
-    F = Tensor2(
-        tensor=jnp.array([[0, gamma, 0], [0, 0, 0], [0, 0, 0]], dtype=jnp.float64)
-    )
+    F = Tensor2(tensor=jnp.array([[0, gamma, 0], [0, 0, 0], [0, 0, 0]], dtype=jnp.float64))
     f1 = F - Id
     f2 = Id + F
     g1 = F @ Id
@@ -162,9 +161,7 @@ def test_operations_with_ndarrays():
 def test_stretch_tensor():
     gamma = 0.75
     Id = SymmetricTensor2.identity()
-    F = Id + Tensor2(
-        tensor=jnp.array([[0, gamma, 0], [0, 0, 0], [0, 0, 0]], dtype=jnp.float64)
-    )
+    F = Id + Tensor2(tensor=jnp.array([[0, gamma, 0], [0, 0, 0], [0, 0, 0]], dtype=jnp.float64))
     R, U = jax.jit(polar)(F)
     C = (F.T @ F).sym
     B = (F @ F.T).sym
@@ -184,6 +181,7 @@ def test_tensor4_init():
     A = Tensor2(tensor=a)
     T_ = jnp.outer(A.array, A.array)
     T = Tensor4(array=T_)
+    assert T[0, 1, 0, 1] == a[0, 1] ** 2
     assert jnp.allclose(T, jnp.einsum("ij,kl->ijkl", a, a))
     assert jnp.allclose((T @ T), A.double_contract(A) * T)
     a = 0.5 * (a + a.T)
@@ -207,9 +205,7 @@ def test_tensor4_identities():
     id_ = jnp.eye(3)
     Id_ = jnp.einsum("ik,jl->ijkl", id_, id_)
     assert jnp.allclose(Id, Id_)
-    Ids_ = 0.5 * (
-        jnp.einsum("ik,jl->ijkl", id_, id_) + jnp.einsum("il,jk->ijkl", id_, id_)
-    )
+    Ids_ = 0.5 * (jnp.einsum("ik,jl->ijkl", id_, id_) + jnp.einsum("il,jk->ijkl", id_, id_))
     assert jnp.allclose(Ids, Ids_)
 
     key = jax.random.PRNGKey(0)
@@ -267,8 +263,7 @@ def test_isotropic_elasticity():
     mu = 1.0
     lmbda = kappa - 2 / 3 * mu
     C = IsotropicTensor4(kappa=kappa, mu=mu)
-    assert C.shape == (6, 6)
-    assert C.tensor_shape == (3, 3, 3, 3)
+    assert C.array.shape == (6, 6)
 
     C_plane = jnp.asarray(
         [
@@ -277,25 +272,22 @@ def test_isotropic_elasticity():
             [lmbda, lmbda, lmbda + 2 * mu],
         ]
     )
-    C_ = jax.scipy.linalg.block_diag(
-        C_plane, *([jnp.full((1, 1), fill_value=2 * mu)] * 3)
-    )
+    C_ = jax.scipy.linalg.block_diag(C_plane, *([jnp.full((1, 1), fill_value=2 * mu)] * 3))
     assert jnp.allclose(C.array, C_)
 
     C_ = SymmetricTensor4(array=C.array)
-    assert jnp.allclose(C, IsotropicTensor4.project(C_))
+    assert jnp.allclose(C.coeffs, IsotropicTensor4.project(C_).coeffs)
     S = IsotropicTensor4(coeffs=jnp.asarray([1 / 3 / kappa, 1 / 2 / mu]))
 
-    assert jnp.allclose(C_.inv, S)
-    assert jnp.allclose(C_.inv, C.inv)
+    assert jnp.allclose(C_.inv, S.to_symmetric())
+    assert jnp.allclose(C_.inv, C.inv.to_symmetric())
 
     # test batch version
     N = 10
     kappa = jnp.ones((N,))
     mu = jnp.ones((N,))
     C = IsotropicTensor4(kappa=kappa, mu=mu)
-    assert C.shape == (N, 6, 6)
-    assert C.tensor_shape == (N, 3, 3, 3, 3)
+    assert C.array.shape == (N, 6, 6)
 
 
 def test_cubic_projectors():
@@ -334,7 +326,6 @@ def test_cubic_tensor4():
 
     # Kelvin array should match C1
     assert jnp.allclose(C2.array, C1.array)
-    assert jnp.allclose(C2.tensor, C1.tensor)
 
     # 4. Check composition and inversion
     # ---------------------------
@@ -349,7 +340,7 @@ def test_cubic_tensor4():
 
     # Check projection
     C_ = SymmetricTensor4(array=C1.array)
-    assert jnp.allclose(C1, CubicTensor4.project(C_))
+    assert jnp.allclose(C1.coeffs, CubicTensor4.project(C_).coeffs)
 
 
 def test_transverse_isotropic_projectors():
@@ -414,10 +405,10 @@ def test_transverse_isotropic_tensor4():
 
     # Check inversion
     Cinv = C.inv
-    assert jnp.allclose(Cinv, C_.inv)
+    assert jnp.allclose(Cinv.to_symmetric(), C_.inv)
 
     # Check projection
-    assert jnp.allclose(C, TransverseIsotropicTensor4.project(axis, C_))
+    assert jnp.allclose(C.coeffs, TransverseIsotropicTensor4.project(axis, C_).coeffs)
 
 
 def test_operator_symmetry():
@@ -477,7 +468,8 @@ def test_tangent_tensor():
     assert Ct.shape == (6, 6)
     assert Ct.tensor.shape == (6, 3, 3)
     assert Ct.batch_shape == (6,)
-    assert jnp.allclose(SymmetricTensor4(array=Ct), C)
+    Ctang = SymmetricTensor4(array=Ct.array)
+    assert jnp.allclose(Ctang, C.to_symmetric())
 
 
 @pytest.mark.parametrize("cls", [Tensor2, SymmetricTensor2])

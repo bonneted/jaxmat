@@ -8,8 +8,21 @@ def default_value(value, dtype=jnp.float64, **kwargs):
 
 
 def enforce_dtype(dtype=jnp.float64, **kwargs):
-    """Initialize and convert a field with default `value` of imposed `dtype`."""
-    return eqx.field(converter=lambda x: jnp.asarray(x, dtype=dtype), **kwargs)
+    """Coerce a field to a strongly-typed array of the given ``dtype``.
+
+    Two values pass through untouched: ``None`` (so a field can be optional) and
+    an ``eqx.Module`` (e.g. a temperature-dependent parameter *expression*, to be
+    materialized later via ``evaluate_parameters``). Everything else is cast, which
+    also normalizes weak/strong/float32 inputs to a single dtype (avoiding jit
+    retracing).
+    """
+
+    def convert(x):
+        if x is None or isinstance(x, eqx.Module):
+            return x
+        return jnp.asarray(x, dtype=dtype)
+
+    return eqx.field(converter=convert, **kwargs)
 
 
 def _rgetattr(obj, attr):
@@ -21,7 +34,7 @@ def _rgetattr(obj, attr):
 
 def partition_by_node_names(model, freeze_names):
     """
-    Partition an Equinox model into (trainable, static) where
+    Partition an ``euinox`` model into (trainable, static) where
     attributes listed in `freeze_names` are frozen (moved to static).
     """
 
@@ -45,14 +58,18 @@ def partition_by_node_names(model, freeze_names):
 
 def print_eqx_fields(obj, fields=None, indent=0):
     """
-    Recursively print fields of an Equinox module or dataclass-like object.
+    Recursively print fields of an ``equinox`` module or dataclass-like object.
 
-    Args:
-        obj: The Equinox module or object to inspect.
-        fields: Optional list of field names (strings) to print.
-                Supports nested paths like ["layer1", "layer2.weight"].
-                If None, prints all fields recursively.
-        indent: Internal indentation level (used for recursion).
+    Parameters
+    ----------
+    obj: eqx.Module
+        The module or object to inspect.
+    fields: list
+        Optional list of field names (strings) to print.
+        Supports nested paths like ``["layer1", "layer2.weight"]``.
+        If ``None``, prints all fields recursively.
+    indent: int
+        Internal indentation level (used for recursion).
     """
     pad = " " * indent
 
@@ -79,7 +96,7 @@ def print_eqx_fields(obj, fields=None, indent=0):
                 print_eqx_fields(v, fields=subfields, indent=indent + 4)
             else:
                 print(f"{pad}  {k} = {v}")
-    elif isinstance(obj, (list, tuple)):
+    elif isinstance(obj, (list | tuple)):
         for i, v in enumerate(obj):
             print(f"{pad}[{i}]: {v}")
     else:

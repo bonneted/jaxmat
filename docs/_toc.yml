@@ -19,13 +19,14 @@ parts:
     chapters:
     - file: pheno_models.md
       sections:
-        - file: demos/phenomenological_models/Green_viscoplasticity.ipynb
-        - file: demos/phenomenological_models/CamClay.ipynb
+        - file: demos/phenomenological_models/green_viscoplasticity.ipynb
+        - file: demos/phenomenological_models/cam_clay.ipynb
         - file: demos/phenomenological_models/multisurface_plasticity.ipynb    
     - file: identification.md  
       sections:
         - file: demos/identification/hardening_rule.ipynb
         - file: demos/identification/nonlinear_kinematic_hardening.ipynb
+        - file: demos/identification/temperature_dependent_viscoelasticity.ipynb
     - file: ml_models.md
       sections:
         - file: demos/neural_network_models/hyperelastic_PANN.ipynb
@@ -38,8 +39,12 @@ parts:
       - file: sharp_bits.md
   - caption: API
     chapters:
+      - file: api/jaxmat.constraints.rst
       - file: api/jaxmat.loader.rst
       - file: api/jaxmat.materials.rst
+      - file: api/jaxmat.nn.rst
+      - file: api/jaxmat.parameters.rst
       - file: api/jaxmat.solvers.rst
       - file: api/jaxmat.state.rst
       - file: api/jaxmat.tensors.rst
+      - file: api/jaxmat.utils.rst

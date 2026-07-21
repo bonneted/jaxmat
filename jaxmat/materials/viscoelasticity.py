@@ -37,14 +37,15 @@ class StandardLinearSolid(jm.SmallStrainBehavior):
 
     elasticity: jm.AbstractLinearElastic
     """Elastic model for the purely elastic branch."""
-    maxwell_stiffness: jm.AbstractLinearElastic
-    """Elastic model representing the spring in the Maxwell branch."""
+    maxwell_stiffness: jm.LinearElasticIsotropic
+    """Isotropic elastic model representing the spring in the Maxwell branch."""
     maxwell_viscosity: float = enforce_dtype()
     r"""Viscosity $\eta$ of the dashpot in the Maxwell branch."""
     internal_type = SLSState
     """Internal state containing the viscous strain."""
 
     @eqx.filter_jit
+    @eqx.debug.assert_max_traces(max_traces=1)
     def constitutive_update(self, eps, state, dt):
         eps_old = state.strain
         epsv_old = state.internal.epsv
@@ -67,16 +68,18 @@ class GeneralizedMaxwellState(AbstractState):
     Stores the internal viscous strains and stresses for each Maxwell branch.
     """
 
-    epsv: SymmetricTensor2 = eqx.field(init=False)
+    epsv: SymmetricTensor2 = eqx.field(default=None)
     r"""Viscous strains $\beps^\text{v}_i$ for each Maxwell branch."""
-    sigv: SymmetricTensor2 = eqx.field(init=False)
+    sigv: SymmetricTensor2 = eqx.field(default=None)
     r"""Viscoelastic stresses $\bsig^\text{v}_i$ for each Maxwell branch."""
     Nbranch: int = eqx.field(static=True, default=1)
     """Number of Maxwell branches."""
 
     def __post_init__(self):
-        self.epsv = make_batched(SymmetricTensor2(), self.Nbranch)
-        self.sigv = make_batched(SymmetricTensor2(), self.Nbranch)
+        if self.epsv is None:
+            object.__setattr__(self, "epsv", make_batched(SymmetricTensor2(), self.Nbranch))
+        if self.sigv is None:
+            object.__setattr__(self, "sigv", make_batched(SymmetricTensor2(), self.Nbranch))
 
 
 class GeneralizedMaxwell(jm.SmallStrainBehavior):
@@ -114,6 +117,8 @@ class GeneralizedMaxwell(jm.SmallStrainBehavior):
     def make_internal_state(self):
         return GeneralizedMaxwellState(Nbranch=len(self.relaxation_times))
 
+    @eqx.filter_jit
+    @eqx.debug.assert_max_traces(max_traces=1)
     def constitutive_update(self, eps, state, dt):
         sigv_old = state.internal.sigv
         eps_old = state.strain

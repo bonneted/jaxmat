@@ -2,7 +2,7 @@
 # jupyter:
 #   jupytext:
 #     default_lexer: ipython3
-#     formats: md:myst,py:percent,ipynb
+#     formats: py:percent,ipynb
 #     text_representation:
 #       extension: .py
 #       format_name: percent
@@ -57,7 +57,7 @@
 #
 # We load below the data set and define the corresponding training input and output dataset as well
 # as the PT test dataset.
-#
+
 # %%
 import jax
 import jax.numpy as jnp
@@ -69,9 +69,7 @@ from jaxmat import get_path
 from jaxmat.nn.icnn import ICNN
 
 current_path = get_path()
-data = np.loadtxt(
-    current_path / "../demos/_data/Treloar_rubber.csv", skiprows=1, delimiter=","
-)
+data = np.loadtxt(current_path / "../demos/_data/Treloar_rubber.csv", skiprows=1, delimiter=",")
 stress_data = []
 load_data = []
 for i in range(3):
@@ -83,9 +81,7 @@ def resample(x, y, N, downsample_ratio=0.0):
     if N is None:
         return x, y
     else:
-        xr = jnp.linspace(
-            (1 + downsample_ratio) * min(x), (1 - downsample_ratio) * max(x), N
-        )
+        xr = jnp.linspace((1 + downsample_ratio) * min(x), (1 - downsample_ratio) * max(x), N)
         yr = jnp.interp(xr, x, y)
         return xr, yr
 
@@ -102,9 +98,7 @@ for i, label in enumerate(labels):
     match label:
         case "simple_tension":
             stretches = jnp.vstack((lamb, 1 / jnp.sqrt(lamb), 1 / jnp.sqrt(lamb))).T
-            stresses = jnp.vstack(
-                (stress, jnp.zeros_like(stress), jnp.zeros_like(stress))
-            ).T
+            stresses = jnp.vstack((stress, jnp.zeros_like(stress), jnp.zeros_like(stress))).T
         case "biaxial_tension":
             stretches = jnp.vstack((lamb, lamb, 1 / lamb**2)).T
             stresses = jnp.vstack((stress, stress, jnp.zeros_like(stress))).T
@@ -193,7 +187,6 @@ test_output = {key: dataset[key][1] for key in labels if key not in training_cas
 # PANN material model.
 
 
-
 # %%
 class PANN(ICNN):
     def nn_energy(self, lambC):
@@ -226,7 +219,7 @@ batched_compute_stress = jax.vmap(PANN.pann_PK1_stress, in_axes=(None, 0))
 # A PANN material with 10 neurons in one hidden layer is defined below and randomly initialized. The
 # figure reports the stress-stretch curve for uniaxial tension obtained with this initialization. As
 # expected, the stress is zero in the reference configuration.
-#
+
 # %%
 input_dim = 4
 hidden_dims = [10]
@@ -251,14 +244,13 @@ plt.show()
 
 # %% [markdown]
 # ## Training the PANN model
-#
+
 # %% [markdown]
 # We are now ready to set up the training. Here, we simply define the error between the predicted
 # and the stress data and use `optimistix` least-square solvers. First, the total error is defined
 # by mapping the `error` function over the training load cases defined as a PyTree. The
 # `total_error` takes as a first argument the PANN model PyTree `material` while training data are
 # stored in the second `args` argument.
-
 
 
 # %%
@@ -275,7 +267,7 @@ def total_error(material, args):
 # %% [markdown]
 # We use a BFGS solver to solve the least-square problem and we do not throw an error in case we
 # reach the maximum number of steps. We retrieve the final trained PANN model from `sol.value`.
-#
+
 # %%
 solver = optx.BFGS(
     rtol=1e-6,
@@ -301,7 +293,7 @@ trained_PANN = sol.value
 # architecture succeeds in learning a good representation of the data, while ensuring almost zero
 # out-of-plane stress in general. The prediction is still very good even on the unseen Plane Tension
 # case.
-#
+
 # %%
 m = len(labels)
 plt.figure(figsize=(6, 5 * m))

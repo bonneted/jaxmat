@@ -13,25 +13,42 @@ from .behavior import FiniteStrainBehavior
 
 
 class HyperelasticPotential(eqx.Module):
+    r"""Hyperelastic potential $\psi(\bF)$.
+
+    Contains helper functions to compute Piola-Kirchhoff and Cauchy stresses."""
+
     @abstractmethod
     def __call__(self):
         pass
 
     def PK1(self, F):
+        r"""First-Piola Kirchhoff stress $\bP=\dfrac{\partial \psi}{\partial \bF}$."""
         return jax.jacfwd(self.__call__)(F)
 
     def PK2(self, F):
+        r"""Second Piola-Kirchhoff stress $\bS=\bF^{-1}\bP$.
+
+        .. note:: Symmetry is explicitly enforced.
+        """
         return (F.inv @ self.PK1(F)).sym
 
     def Cauchy(self, F):
+        r"""Cauchy stress $\bsig=J^{-1}\bP\bF\T$.
+
+        .. note:: Symmetry is explicitly enforced.
+        """
         # Divide on the right rather than on the left to preserve Tensor object
         # due to operator dispatch priority.
         return (self.PK1(F) @ F.T).sym / det33(F)
 
 
 class Hyperelasticity(FiniteStrainBehavior):
+    r"""A hyperelastic finite-strain behavior based on a hyperelastic potential $\psi(\bF)$."""
+
     potential: HyperelasticPotential
 
+    @eqx.filter_jit
+    @eqx.debug.assert_max_traces(max_traces=1)
     def constitutive_update(self, F, state, dt):
         PK1 = self.potential.PK1(F)
         new_state = state.update(PK1=PK1, F=F)
@@ -72,6 +89,8 @@ class HyperelasticityWithEOS(Hyperelasticity):
 
 
 class VolumetricPart(eqx.Module):
+    r"""Volumetric part $\psi_\text{vol}(J)$ of the hyperelastic potential."""
+
     beta: float = 2.0
 
     def __call__(self, J):
