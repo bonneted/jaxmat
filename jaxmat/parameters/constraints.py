@@ -8,7 +8,7 @@ constrained value while the optimiser works on an unconstrained latent.
 
     class Mat(eqx.Module):
         E:  jax.Array = Positive()
-        nu: jax.Array = Interval(0.0, 0.5)
+        nu: jax.Array = Interval(-1.0, 0.5)
 
     m = Mat(E=210e3, nu=0.3)          # raw values; auto-wrapped
     def loss(m, target):
