@@ -7,7 +7,14 @@ the usual 0.x caveat that minor bumps may include breaking changes).
 
 ## Unreleased
 
+### Deprecated
+
+- `utils.enforce_dtype` is now deprecated and should be replaced with the new `parameter` field converter for parameters.
+- `utils.default_value` is now deprecated and renamed to `utils.initial_value`. To be used only for state variable initialization.
+
 ### Added
+
+- A generic `parameter()` field converter to declare parameters, accepting as default values constants, `eqx.Module` or `AbstractParameter`.
 
 - Constrained parameters are introduced using latent representations, relying on [`paramax`](https://github.com/danielward27/paramax). Gradients can be taken with respect to latent representations to remain in the feasible region of the parameter. Currently supports
 `Positive`, `Bounded/Interval`, `Scaled` and `Unconstrained` parameters.
