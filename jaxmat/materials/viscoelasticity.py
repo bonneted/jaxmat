@@ -3,9 +3,9 @@ import jax
 import jax.numpy as jnp
 
 import jaxmat.materials as jm
+from jaxmat.parameters import parameter
 from jaxmat.state import AbstractState, make_batched
 from jaxmat.tensors import SymmetricTensor2
-from jaxmat.utils import enforce_dtype
 
 
 class SLSState(AbstractState):
@@ -39,7 +39,7 @@ class StandardLinearSolid(jm.SmallStrainBehavior):
     """Elastic model for the purely elastic branch."""
     maxwell_stiffness: jm.LinearElasticIsotropic
     """Isotropic elastic model representing the spring in the Maxwell branch."""
-    maxwell_viscosity: float = enforce_dtype()
+    maxwell_viscosity: float = parameter()
     r"""Viscosity $\eta$ of the dashpot in the Maxwell branch."""
     internal_type = SLSState
     """Internal state containing the viscous strain."""

@@ -14,8 +14,7 @@ $t_{n+1}$. If ``default_temperature`` is set, a bare mechanical input is also ac
 import equinox as eqx
 import jax.numpy as jnp
 
-from jaxmat.parameters import evaluate_parameters
-from jaxmat.utils import enforce_dtype
+from jaxmat.parameters import evaluate_parameters, parameter
 
 from .behavior import AbstractBehavior
 
@@ -25,7 +24,7 @@ class TemperatureDependent(AbstractBehavior):
 
     behavior: AbstractBehavior
     """The wrapped behavior, whose parameters may be temperature expressions."""
-    default_temperature: jnp.ndarray = enforce_dtype(default=None)
+    default_temperature: jnp.ndarray = parameter(default=None)
     """Optional fallback temperature used when the input carries no ``T``."""
 
     def make_internal_state(self):

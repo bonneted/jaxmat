@@ -13,8 +13,6 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 
-from jaxmat.utils import enforce_dtype
-
 DEFAULT_TEMPERATURE = 273.15
 
 _UNSET = object()
@@ -75,7 +73,7 @@ class AbstractParameter(eqx.Module):
 class Constant(AbstractParameter):
     """A constant value (explicitly temperature-independent)."""
 
-    value: jax.Array = enforce_dtype()
+    value: jax.Array = parameter()
 
     def evaluate(self, T):
         return self.value
@@ -84,9 +82,9 @@ class Constant(AbstractParameter):
 class Affine(AbstractParameter):
     r"""Linear law $p(T) = p_\text{ref} + s\,(T - T_\text{ref})$."""
 
-    ref: jax.Array = enforce_dtype()
-    slope: jax.Array = enforce_dtype()
-    T_ref: jax.Array = enforce_dtype(default=DEFAULT_TEMPERATURE)
+    ref: jax.Array = parameter()
+    slope: jax.Array = parameter()
+    T_ref: jax.Array = parameter(default=DEFAULT_TEMPERATURE)
 
     def evaluate(self, T):
         return self.ref + self.slope * (T - self.T_ref)
@@ -95,8 +93,8 @@ class Affine(AbstractParameter):
 class Polynomial(AbstractParameter):
     r"""$p(T) = \sum_k c_k (T - T_\text{ref})^k$ (``coeffs`` low->high order)."""
 
-    coeffs: jax.Array = enforce_dtype()
-    T_ref: jax.Array = enforce_dtype(default=DEFAULT_TEMPERATURE)
+    coeffs: jax.Array = parameter()
+    T_ref: jax.Array = parameter(default=DEFAULT_TEMPERATURE)
 
     def evaluate(self, T):
         return jnp.polyval(self.coeffs[::-1], T - self.T_ref)
@@ -105,9 +103,9 @@ class Polynomial(AbstractParameter):
 class Arrhenius(AbstractParameter):
     r"""$p(T) = A\,\exp(-Q / (R\,T))$ (``T`` absolute)."""
 
-    A: jax.Array = enforce_dtype()
-    Q: jax.Array = enforce_dtype()
-    R: jax.Array = enforce_dtype(default=8.314462618)
+    A: jax.Array = parameter()
+    Q: jax.Array = parameter()
+    R: jax.Array = parameter(default=8.314462618)
 
     def evaluate(self, T):
         return self.A * jnp.exp(-self.Q / (self.R * T))
