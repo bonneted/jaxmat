@@ -115,7 +115,7 @@ class AbstractJohnsonPorosity(SmallStrainBehavior):
     @staticmethod
     def degradation(f):
         r"""Degradation function :math:`g(f) = 1 - f`."""
-        return 1.0 - f
+        return (1.0 - f)**2
 
 class StaticJohnsonPorosity(AbstractJohnsonPorosity):
     r"""Static (quasi-static, viscous) Johnson porosity model.
