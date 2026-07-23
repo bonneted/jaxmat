@@ -109,13 +109,15 @@ class GeneralizedMaxwell(jm.SmallStrainBehavior):
 
     elasticity: jm.AbstractLinearElastic
     """Elastic model of the equilibrium (instantaneous) branch."""
+    Nbranch: int = eqx.field(static=True)
+    """Number of relaxation branches"""
     viscous_branches: jm.AbstractLinearElastic
     """Elastic stiffness models for the Maxwell branches."""
-    relaxation_times: jax.Array = eqx.field(converter=jnp.asarray)
+    relaxation_times: jax.Array = parameter()
     r"""Array of relaxation times $(\tau_i)$ for the Maxwell branches."""
 
     def make_internal_state(self):
-        return GeneralizedMaxwellState(Nbranch=len(self.relaxation_times))
+        return GeneralizedMaxwellState(Nbranch=self.Nbranch)
 
     @eqx.filter_jit
     @eqx.debug.assert_max_traces(max_traces=1)
@@ -135,8 +137,6 @@ class GeneralizedMaxwell(jm.SmallStrainBehavior):
             self.viscous_branches, self.relaxation_times, sigv_old
         )
         isv = state.internal.update(epsv=epsv_new, sigv=sigv_new)
-        sig = (
-            self.elasticity.C @ eps + jnp.sum(sigv_new, axis=0)
-        ).sym  # FIXME: make it SymmetricTensor2
+        sig = (self.elasticity.C @ eps + jnp.sum(sigv_new, axis=0)).sym
         new_state = state.update(strain=eps, stress=sig, internal=isv)
         return sig, new_state
