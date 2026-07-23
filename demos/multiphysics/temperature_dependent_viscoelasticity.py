@@ -83,10 +83,10 @@ T_REF, R_GAS = 300.0, 8.314462618
 #
 # The temperature dependence lives in a single parameter: the reference relaxation times
 # scaled by the Arrhenius shift. We subclass `AbstractParameter` and implement the `evaluate`
-# method. Any behavior field holding such a parameter is resolved automatically by
-# `evaluate_parameters` when the behavior is wrapped as a `TemperatureDependent` material,
-# so the behavior itself never # needs to know about temperature. # Finally, we use the `Positive()`
-# constrained field to keep the # times and activation energy positive during calibration.
+# method. # Any behavior field holding such a parameter is resolved automatically by
+# `evaluate_parameters` when the behavior is wrapped as a # `TemperatureDependent` material, so
+# the behavior itself never needs to know about temperature. # Finally, we use the `Positive()`
+# constrained field to keep the times and activation energy positive during calibration.
 
 
 # %%
@@ -106,8 +106,8 @@ class ShiftedRelaxationTimes(AbstractParameter):
 # ## Building the model by composition
 #
 # We build the model from an equilibrium elastic branch, a set of Maxwell branches, and the
-# temperature-dependent # relaxation times, assembled into a `GeneralizedMaxwell` and wrapped
-# once as a `TemperatureDependent` model.
+# temperature-dependent # relaxation times, assembled into a `GeneralizedMaxwell` and wrapped once
+# as a `TemperatureDependent` model.
 
 # %%
 nu = 0.3
@@ -180,7 +180,7 @@ collapse_err = max(
 )
 print(
     f"master-curve collapse: curves at all temperatures overlay to within {collapse_err:.1e}",
-    "(relative)",
+    " (relative)",
 )
 
 # %% [markdown]
@@ -267,8 +267,9 @@ for i in range(500):
 fitted = paramax.unwrap(model).behavior.relaxation_times
 true_p = paramax.unwrap(truth).behavior.relaxation_times
 print(
-    f"\n  tau_ref : {[round(float(x), 1) for x in fitted.tau_ref]}  vs ",
-    f"{[round(float(x), 1) for x in true_p.tau_ref]}",
+    f"\n  tau_ref : {[round(float(x), 1) for x in fitted.tau_ref]}  vs {
+        [round(float(x), 1) for x in true_p.tau_ref]
+    }"
 )
 print(f"  Q       : {float(fitted.Q):.3e}  vs {float(true_p.Q):.3e}")
 
@@ -308,7 +309,6 @@ plt.ylabel("relaxation modulus $E(t;T)$ [MPa]")
 plt.title("Batched inference across temperature")
 sm = mpl.cm.ScalarMappable(norm=norm, cmap=cmap)
 plt.colorbar(sm, ax=plt.gca(), label="Temperature [K]")
-plt.savefig("temperature_viscoelasticity.pdf")
 plt.show()
 
 # %% [markdown]
@@ -353,6 +353,6 @@ plt.show()
 # `AbstractParameter`, `ShiftedRelaxationTimes`, the mechanical model is an unmodified
 # `GeneralizedMaxwell`; and `TemperatureDependent` ties them together, resolving the parameter at
 # each # step and delegating to the existing update. The whole chain is differentiable, so the
-# temperature law is calibrated straight through the wrapper by the same automatic differentiation
+# temperature law # is calibrated straight through the wrapper by the same automatic differentiation
 # used for ordinary parameters. # The same pattern applies to any other coefficient (e.g. a
 # temperature-dependent modulus or yield stress) # by declaring it as a parameter.
