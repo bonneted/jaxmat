@@ -49,20 +49,31 @@ class Constant(AbstractParameter):
 
 
 class Affine(AbstractParameter):
-    r"""Linear law $p(T) = p_\text{ref} + s\,(T - T_\text{ref})$."""
+    r"""Linear law
+
+    $$p(T) = p_{\textrm{ref}} + s (T-T_{\textrm{ref}})$$
+    """
 
     ref: jax.Array = parameter()
+    r"""Reference value $p_{\textrm{ref}}$"""
     slope: jax.Array = parameter()
+    r"""Slope $s$"""
     T_ref: jax.Array = parameter(default=DEFAULT_TEMPERATURE)
+    r"""Reference temperature $T_{\textrm{ref}}$"""
 
     def evaluate(self, T):
         return self.ref + self.slope * (T - self.T_ref)
 
 
 class Polynomial(AbstractParameter):
-    r"""$p(T) = \sum_k c_k (T - T_\text{ref})^k$ (``coeffs`` low->high order)."""
+    r"""
+    Polynomial law
+
+    $$p(T) = \sum_k c_k (T - T_{\textrm{ref}})^k$$
+    """
 
     coeffs: jax.Array = parameter()
+    """Polynomial coefficients, ordered from low to high order."""
     T_ref: jax.Array = parameter(default=DEFAULT_TEMPERATURE)
 
     def evaluate(self, T):
@@ -70,18 +81,24 @@ class Polynomial(AbstractParameter):
 
 
 class Arrhenius(AbstractParameter):
-    r"""$p(T) = A\,\exp(-Q / (R\,T))$ (``T`` absolute)."""
+    r"""Arrhenius activation energy law
+
+    $$p(T) = A\,\exp(-Q / (R\,T))$$
+    """
 
     A: jax.Array = parameter()
+    """Arrhenius factor."""
     Q: jax.Array = parameter()
+    """Activation energy"""
     R: jax.Array = parameter(default=8.314462618)
+    r"""Universal gas constant $R=8.314462618 \textrm{J}.\textrm{K}^{-1}.\textrm{mol}^{-1}."""
 
     def evaluate(self, T):
         return self.A * jnp.exp(-self.Q / (self.R * T))
 
 
 class Expression(AbstractParameter):
-    """Wrap any callable / ``eqx.Module`` ``fn(T) -> scalar`` as a parameter."""
+    """Wrap any ``callable`` / ``eqx.Module`` with signature ``fn(T) -> scalar`` as a parameter."""
 
     fn: eqx.Module
 
@@ -102,7 +119,9 @@ def evaluate_parameters(model, T):
     """Materialize every ``AbstractParameter`` in ``model`` at temperature ``T``.
 
     For an isothermal analysis, resolve once and use the result as an ordinary
-    constant model::
+    constant model:
+
+    .. code-block:: python
 
         isothermal = evaluate_parameters(model, T_fixed)
     """
