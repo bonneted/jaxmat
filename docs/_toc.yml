@@ -26,12 +26,13 @@ parts:
       sections:
         - file: demos/identification/hardening_rule.ipynb
         - file: demos/identification/nonlinear_kinematic_hardening.ipynb
-        - file: demos/identification/temperature_dependent_viscoelasticity.ipynb
     - file: ml_models.md
       sections:
         - file: demos/neural_network_models/hyperelastic_PANN.ipynb
         - file: demos/neural_network_models/neural_GSM.ipynb
-
+    - file: multiphysics.md
+      sections:
+        - file: demos/multiphysics/temperature_dependent_viscoelasticity.ipynb
   - caption: General resources 
     chapters:
       - file: concepts.md
