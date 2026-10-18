@@ -7,6 +7,11 @@ the usual 0.x caveat that minor bumps may include breaking changes).
 
 ## Unreleased
 
+### Fixed
+
+- `FischerBurmeister` used a floored square root (`safe_sqrt`), which made the complementarity residual linear within `sqrt(x**2 + y**2) < 1e-8`. Near the yield onset (`|f| < 1e-8 E`) the return mapping of the `FB`-based behaviors then returned a negative `dp` on the elastic side and a wrong implicit gradient. The square root is now exact, with a zero gradient at the origin.
+- `vonMisesIsotropicHardening` starts its Newton solve from the linearized return mapping instead of `dp = 0`: just past the onset `dp` is below the solver's `atol` and the first step was accepted unconverged, giving a wrong implicit gradient. The new start also needs fewer Newton iterations.
+
 ### Added
 
 - Constrained parameters are introduced using latent representations, relying on [`paramax`](https://github.com/danielward27/paramax). Gradients can be taken with respect to latent representations to remain in the feasible region of the parameter. Currently supports
