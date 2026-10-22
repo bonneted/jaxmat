@@ -9,29 +9,36 @@ the usual 0.x caveat that minor bumps may include breaking changes).
 
 ### Fixed
 
+- `FeFpJ2Plasticity` was bugged: not objective trial state, total deformation gradient not updated in final state
+  and shear components of the plastic flow were doubled because of bad tensor conversion after scalar multiply.
 - `FischerBurmeister` used a floored square root (`safe_sqrt`), which made the complementarity residual linear within `sqrt(x**2 + y**2) < 1e-8`. Near the yield onset (`|f| < 1e-8 E`) the return mapping of the `FB`-based behaviors then returned a negative `dp` on the elastic side and a wrong implicit gradient. The square root is now exact, with a zero gradient at the origin.
 - `vonMisesIsotropicHardening` starts its Newton solve from the linearized return mapping instead of `dp = 0`: just past the onset `dp` is below the solver's `atol` and the first step was accepted unconverged, giving a wrong implicit gradient. The new start also needs fewer Newton iterations.
 
+### Deprecated
+
+- `utils.enforce_dtype` is now deprecated and should be replaced with the new `parameter` field converter for parameters.
+- `utils.default_value` is now deprecated and renamed to `utils.initial_value`. To be used only for state variable initialization.
+
 ### Added
 
-- Constrained parameters are introduced using latent representations, relying on [`paramax`](https://github.com/danielward27/paramax). Gradients can be taken with respect to latent representations to remain in the feasible region of the parameter. Currently supports
-`Positive`, `Bounded/Interval`, `Scaled` and `Unconstrained` parameters.
-
-- Temperature-dependent (or more generally input-dependent, eg. humidity, chemical content, etc.) parameters
-are introduced, replacing constants with temperature-dependent expressions (`AbstractParameter` inheriting from `eqx.Module`)
-with their associated material parameters. ``evaluate_parameters(model, T)`` returns a copy of any model in which every
-``AbstractParameter`` field has been replaced by its scalar value ``p.evaluate(T)``.
-`TemperatureDependent` is a wrapper around any `AbstractBehavior` which make its constitutive update accept a
-temperature input alongside the mechanical input in its signature. At each update it materializes the wrapped behavior's parameter
-expressions at the current temperature (via ``evaluate_parameters``) and delegates to the wrapped behavior's own ``constitutive_update``, typically via:
-
-```python
-def constitutive_update(self, inputs, state, dt):
-    mech, T = self._split_inputs(inputs)
-    resolved = evaluate_parameters(self.behavior, T)
-    return resolved.constitutive_update(mech, state, dt)
-```
-Note that **thermal strains are not supported** at the moment.
+- A generic `parameters` module has been added. It contains the following features:
+  * `parameter()`: a field converter to declare parameters, accepting as default values constants, `eqx.Module` or `AbstractParameter`.
+  * Constrained parameters are introduced using latent representations, relying on [`paramax`](https://github.com/danielward27/paramax). Gradients can  be taken with respect to latent representations to remain in the feasible region of the parameter. Currently supports
+  `Positive`, `Bounded/Interval`, `Scaled` and `Unconstrained` parameters.
+  * Temperature-dependent (or more generally input-dependent, eg. humidity, chemical content, etc.) parameters
+  are introduced, replacing constants with temperature-dependent expressions (`AbstractParameter` inheriting from `eqx.Module`)
+  with their associated material parameters. ``evaluate_parameters(model, T)`` returns a copy of any model in which every
+  ``AbstractParameter`` field has been replaced by its scalar value ``p.evaluate(T)``.
+  `TemperatureDependent` is a wrapper around any `AbstractBehavior` which make its constitutive update accept a
+  temperature input alongside the mechanical input in its signature. At each update it materializes the wrapped behavior's parameter
+  expressions at the current temperature (via ``evaluate_parameters``) and delegates to the wrapped behavior's own ``constitutive_update``, typically via:
+  ```python
+  def constitutive_update(self, inputs, state, dt):
+      mech, T = self._split_inputs(inputs)
+      resolved = evaluate_parameters(self.behavior, T)
+      return resolved.constitutive_update(mech, state, dt)
+  ```
+  Note that **thermal strains are not supported** at the moment.
 
 ## v0.0.4 - 2026-07-08
 
